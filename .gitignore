@@ -1,0 +1,36 @@
+# Environment variables
+.env
+.env.local
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform/
+terraform.tfvars
+
+# Keys
+keys/
+*.json
+!terraform.tfvars.example
+
+# Docker
+docker-compose.override.yml
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+node_modules/

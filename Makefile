@@ -1,0 +1,72 @@
+.PHONY: help init plan apply destroy deploy client logs all local-build local-start local-stop local-test
+
+TERRAFORM_DIR = terraform
+SERVER_DIR = server
+CLIENT_DIR = client
+
+help:
+	@echo "MCP Toolbox BigQuery - Available Commands"
+	@echo "========================================="
+	@echo ""
+	@echo "Production Commands:"
+	@echo "  make init     - Initialize Terraform"
+	@echo "  make plan     - Show infrastructure changes"
+	@echo "  make apply    - Apply infrastructure"
+	@echo "  make destroy  - Destroy all resources"
+	@echo "  make deploy   - Deploy application"
+	@echo "  make client   - Setup client configuration"
+	@echo "  make logs     - View Cloud Run logs"
+	@echo "  make all      - Complete setup (init + apply + deploy + client)"
+	@echo ""
+	@echo "Local Testing Commands:"
+	@echo "  make local-test  - Run local Docker tests"
+	@echo "  make local-build - Build Docker image locally"
+	@echo "  make local-start - Start local containers"
+	@echo "  make local-stop  - Stop local containers"
+
+init:
+	@echo "Initializing Terraform..."
+	@cd $(TERRAFORM_DIR) && terraform init
+
+plan:
+	@echo "Planning infrastructure changes..."
+	@cd $(TERRAFORM_DIR) && terraform plan
+
+apply:
+	@echo "Applying infrastructure..."
+	@cd $(TERRAFORM_DIR) && terraform apply -auto-approve
+
+destroy:
+	@echo "Destroying infrastructure..."
+	@cd $(TERRAFORM_DIR) && terraform destroy
+
+deploy:
+	@echo "Deploying application..."
+	@cd $(SERVER_DIR) && \
+	gcloud builds submit --config cloudbuild.yaml
+
+client:
+	@echo "Setting up client..."
+	@cd $(CLIENT_DIR) && ./setup.sh
+
+logs:
+	@echo "Fetching logs..."
+	@gcloud run logs read mcp-toolbox-bigquery \
+		--region=asia-northeast1 \
+		--limit=50
+
+all: init apply deploy client
+	@echo "✅ Complete setup finished!"
+
+# ローカルテストコマンド
+local-build:
+	@./scripts/local-test.sh build
+
+local-start:
+	@./scripts/local-test.sh start
+
+local-stop:
+	@./scripts/local-test.sh stop
+
+local-test:
+	@./scripts/local-test.sh test

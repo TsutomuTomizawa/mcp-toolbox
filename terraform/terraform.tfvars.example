@@ -1,0 +1,4 @@
+project_id   = "your-dev-project-id"
+github_repo  = "your-username/mcp-toolbox-bigquery"
+region       = "asia-northeast1"
+bq_location  = "asia-northeast1"

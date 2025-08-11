@@ -1,0 +1,36 @@
+# MCP Toolbox設定 - 最小構成
+sources:
+  bigquery:
+    kind: bigquery
+    project: ${GCP_PROJECT_ID}
+    location: ${BQ_LOCATION}
+
+tools:
+  # 汎用SQLクエリ実行
+  query:
+    kind: bigquery-execute-sql
+    source: bigquery
+    description: Execute any SQL query on BigQuery
+  
+  # メタデータ取得ツール
+  list-datasets:
+    kind: bigquery-list-dataset-ids
+    source: bigquery
+    description: List all datasets
+  
+  list-tables:
+    kind: bigquery-list-table-ids
+    source: bigquery
+    description: List tables in a dataset
+  
+  table-info:
+    kind: bigquery-get-table-info
+    source: bigquery
+    description: Get table schema and metadata
+
+toolsets:
+  default:
+    - query
+    - list-datasets
+    - list-tables
+    - table-info

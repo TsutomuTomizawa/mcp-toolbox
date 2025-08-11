@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  mcp-toolbox:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID:-trans-grid-245207}
+      BQ_LOCATION: ${BQ_LOCATION:-asia-northeast1}
+      GOOGLE_APPLICATION_CREDENTIALS: /gcloud-config/application_default_credentials.json
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ${HOME}/.config/gcloud:/gcloud-config:ro
+      - ./server/tools.yaml:/app/tools.yaml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+networks:
+  mcp-network:
+    driver: bridge
