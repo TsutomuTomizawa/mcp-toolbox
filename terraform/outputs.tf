@@ -8,12 +8,7 @@ output "client_sa_email" {
   value       = google_service_account.client.email
 }
 
-output "github_wif_provider" {
-  description = "GitHub Workload Identity Provider"
-  value       = module.github_wif.provider_name
-}
-
 output "github_sa_email" {
   description = "GitHub Actions service account"
-  value       = module.github_wif.service_account_email
+  value       = google_service_account.github_actions.email
 }

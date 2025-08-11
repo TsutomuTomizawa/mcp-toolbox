@@ -122,10 +122,22 @@ resource "google_cloud_run_service_iam_member" "client_invoker" {
   member   = "serviceAccount:${google_service_account.client.email}"
 }
 
-# GitHub Actions用Workload Identity
-module "github_wif" {
-  source = "./modules/github-wif"
+# GitHub Actions用サービスアカウント
+resource "google_service_account" "github_actions" {
+  project      = local.project_id
+  account_id   = "github-actions-sa"
+  display_name = "GitHub Actions Service Account"
+}
+
+# GitHub Actions用の権限
+resource "google_project_iam_member" "github_actions_permissions" {
+  for_each = toset([
+    "roles/run.admin",
+    "roles/artifactregistry.writer",
+    "roles/cloudbuild.builds.builder"
+  ])
   
-  project_id  = local.project_id
-  github_repo = var.github_repo
+  project = local.project_id
+  role    = each.value
+  member  = "serviceAccount:${google_service_account.github_actions.email}"
 }

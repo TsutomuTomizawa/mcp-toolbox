@@ -71,36 +71,50 @@ terraform apply
 - **サービスアカウント**: 
   - `mcp-toolbox-sa`: Cloud Run用（BigQuery読み取り権限）
   - `mcp-toolbox-client`: クライアント接続用
-  - `github-actions-sa`: GitHub Actions用
-- **Workload Identity Federation**: GitHub Actionsの認証用
+  - `github-actions-sa`: GitHub Actions用（CI/CD）
 
 ## 3. GitHub Actions設定
 
-### 3.1 必要なSecrets
-
-Terraformの出力から以下の値を取得してGitHub Secretsに設定：
+### 3.1 サービスアカウントキーの生成
 
 ```bash
-# Terraform出力を確認
-terraform output
+# Terraformでサービスアカウントを作成後、キーを生成
+cd terraform
+SERVICE_ACCOUNT=$(terraform output -raw github_sa_email)
+cd ..
 
-# 以下の値をGitHub Secretsに設定
-# Settings → Secrets and variables → Actions → New repository secret
+# キーファイルを生成
+gcloud iam service-accounts keys create github-actions-key.json \
+  --iam-account="${SERVICE_ACCOUNT}"
+
+# 生成されたキーの内容を確認
+cat github-actions-key.json
 ```
 
-| Secret名 | 値の取得方法 |
-|---------|------------|
+### 3.2 GitHub Secretsの設定
+
+GitHub Secretsに以下の値を設定：
+
+| Secret名 | 値 |
+|---------|-----|
 | `GCP_PROJECT_ID` | `trans-grid-245207` |
-| `WIF_PROVIDER` | `terraform output github_wif_provider` |
-| `WIF_SERVICE_ACCOUNT` | `terraform output github_sa_email` |
+| `GCP_SA_KEY` | 上記で生成したJSONキーの内容全体 |
 
-### 3.2 GitHub Secretsの設定（CLI）
+#### 設定方法1: GitHub Web UI
+1. リポジトリの Settings → Secrets and variables → Actions
+2. "New repository secret" をクリック
+3. `GCP_PROJECT_ID` と `GCP_SA_KEY` を設定
 
+#### 設定方法2: GitHub CLI
 ```bash
-# GitHub CLIを使用する場合
+# プロジェクトIDを設定
 gh secret set GCP_PROJECT_ID --body="trans-grid-245207"
-gh secret set WIF_PROVIDER --body="$(terraform output -raw github_wif_provider)"
-gh secret set WIF_SERVICE_ACCOUNT --body="$(terraform output -raw github_sa_email)"
+
+# サービスアカウントキーを設定
+gh secret set GCP_SA_KEY < github-actions-key.json
+
+# キーファイルを安全に削除
+rm github-actions-key.json
 ```
 
 ## 4. デプロイ実行
@@ -247,7 +261,8 @@ Cloud Runで使用される環境変数：
 - Cloud Runは認証必須（デフォルト）
 - サービスアカウントは最小権限の原則に従う
 - BigQuery権限は読み取り専用（`roles/bigquery.dataViewer`）
-- Workload Identity Federationでシークレットキー不要
+- サービスアカウントキーは安全に管理（GitHub Secretsに保存）
+- キーのローテーションを定期的に実施することを推奨
 
 ## 10. コスト最適化
 
