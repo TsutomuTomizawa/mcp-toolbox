@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "mcp-toolbox-bigquery": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-remote",
+        "https://mcp-toolbox-2fbutm4xoa-an.a.run.app/mcp"
+      ],
+      "env": {
+        "MCP_REMOTE_HEADERS": "{\"Authorization\":\"Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImJhNjNiNDM2ODM2YTkzOWI3OTViNDEyMmQzZjRkMGQyMjVkMWM3MDAiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIzMjU1NTk0MDU1OS5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsImF1ZCI6IjMyNTU1OTQwNTU5LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTEwNTY3MDA0MTE1MjMyMTMwNDY0IiwiaGQiOiJoZWxsb3dpc2VlZ2cuY29tIiwiZW1haWwiOiJ0b21pemF3YUBoZWxsb3dpc2VlZ2cuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJCUHBGRmdKN3M4MXZVcmE1TUxjRnBBIiwiaWF0IjoxNzU0OTMxMzY5LCJleHAiOjE3NTQ5MzQ5Njl9.FX08NAI8vgqr64rmuy6WrADu_uJovgpB86jvyYCPutfiwkulh2qaaQ1fhqqiOd3lsS9K1Km69zcQaL47khGODLUz6n-lJyt3j_ExzxWPPnztNxWC5J-ciXD3pd9K3KY7WpXl8dySU05AXk7AZxOYaK00Pi1T2ZoJ6le-EnnBlGz5Z_w53h9CANzrBBy5KhTvgJ0tpJVsM7f9w832fdHMj3mF6UXIT-nOABF2qHE3HNLtYYRTxCfsNpD7-b8Of1WfVXkE9aSUodpHWghO7_mBsvfkNkTbLnAcx9nlDyhCoEAdXYEpKF9D6RtRIOHv7FiptcNA_HHvAusuzLquW6F6SQ\"}"
+      }
+    }
+  }
+}

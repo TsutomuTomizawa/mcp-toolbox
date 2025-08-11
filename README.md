@@ -2,6 +2,8 @@
 
 LLM（Claude Desktop等）からBigQueryに自然言語でアクセスできるMCPサーバー実装。
 
+**デプロイ済みサービス**: https://mcp-toolbox-2fbutm4xoa-an.a.run.app
+
 ## 特徴
 
 - ✅ **MCP Toolbox**: Google公式のエンタープライズグレード実装
@@ -54,11 +56,26 @@ make local-stop
 
 ## 使い方
 
-Claude Desktopを再起動後、🔨アイコンから以下のツールが利用可能：
-- `query`: SQLクエリ実行
-- `list-datasets`: データセット一覧
-- `list-tables`: テーブル一覧
-- `table-info`: テーブル情報取得
+### Claude Codeでの利用
+
+リポジトリ内でMCPサーバーを使用：
+
+```bash
+# 初回セットアップ（認証トークン生成）
+./.claude/setup-mcp.sh
+
+# Claude Codeを再起動すると、MCPツールが利用可能になります
+```
+
+**注意**: トークンは1時間で期限切れになるため、定期的に`setup-mcp.sh`を実行してください。
+
+### 利用可能なツール
+
+- `execute_sql`: SQLクエリ実行
+- `list_dataset_ids`: データセット一覧
+- `list_table_ids`: テーブル一覧  
+- `get_table_info`: テーブル情報取得
+- `get_dataset_info`: データセット情報取得
 
 ## アーキテクチャ
 
