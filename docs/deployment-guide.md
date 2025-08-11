@@ -104,46 +104,85 @@ terraform apply
 
 ## 3. GitHub Actions設定
 
-### 3.1 サービスアカウントキーの生成
+### 3.1 サービスアカウントの確認
+
+まず、GitHub Actions用のサービスアカウントが存在することを確認：
 
 ```bash
-# Terraformでサービスアカウントを作成後、キーを生成
-cd terraform
-SERVICE_ACCOUNT=$(terraform output -raw github_sa_email)
-cd ..
+# サービスアカウントの存在確認
+gcloud iam service-accounts list --filter="email:github-actions-sa@"
 
-# キーファイルを生成
+# 存在しない場合は、Terraformを実行してサービスアカウントを作成
+# （GitHub Actionsで自動実行、または手動で terraform apply）
+```
+
+### 3.2 サービスアカウントキーの生成
+
+```bash
+# キーファイルを生成（ローカルで実行）
 gcloud iam service-accounts keys create github-actions-key.json \
-  --iam-account="${SERVICE_ACCOUNT}"
+  --iam-account="github-actions-sa@trans-grid-245207.iam.gserviceaccount.com"
 
-# 生成されたキーの内容を確認
+# 生成されたキーの内容を表示（後でコピー用）
 cat github-actions-key.json
 ```
 
-### 3.2 GitHub Secretsの設定
+### 3.3 GitHub Secretsの登録（GUI）
 
-GitHub Secretsに以下の値を設定：
+#### 手順：
+1. **GitHubリポジトリにアクセス**
+   - https://github.com/1900film/mcp-toolbox
 
-| Secret名 | 値 |
-|---------|-----|
-| `GCP_PROJECT_ID` | `trans-grid-245207` |
-| `GCP_SA_KEY` | 上記で生成したJSONキーの内容全体 |
+2. **Settings画面へ移動**
+   - リポジトリの **Settings** タブをクリック
+   - 左メニューの **Secrets and variables** → **Actions** を選択
 
-#### 設定方法1: GitHub Web UI
-1. リポジトリの Settings → Secrets and variables → Actions
-2. "New repository secret" をクリック
-3. `GCP_PROJECT_ID` と `GCP_SA_KEY` を設定
+3. **Secret 1: GCP_PROJECT_ID**
+   - **New repository secret** ボタンをクリック
+   - **Name**: `GCP_PROJECT_ID`
+   - **Value**: `trans-grid-245207`
+   - **Add secret** をクリック
 
-#### 設定方法2: GitHub CLI
+4. **Secret 2: GCP_SA_KEY**
+   - 再度 **New repository secret** ボタンをクリック
+   - **Name**: `GCP_SA_KEY`
+   - **Value**: 上記で生成した `github-actions-key.json` の内容全体をコピー＆ペースト
+   - **Add secret** をクリック
+
+5. **登録確認**
+   - Actions secrets ページに以下が表示されることを確認：
+     - `GCP_PROJECT_ID`
+     - `GCP_SA_KEY`
+
+### 3.4 セキュリティ: キーファイルの削除
+
+GitHub Secretsへの登録が完了したら、ローカルのキーファイルを削除：
+
 ```bash
-# プロジェクトIDを設定
-gh secret set GCP_PROJECT_ID --body="trans-grid-245207"
-
-# サービスアカウントキーを設定
-gh secret set GCP_SA_KEY < github-actions-key.json
-
 # キーファイルを安全に削除
 rm github-actions-key.json
+
+# 削除を確認
+ls github-actions-key.json 2>/dev/null || echo "✅ キーファイルが削除されました"
+```
+
+### 3.5 動作確認
+
+Secretsが正しく設定されているか確認するには：
+
+1. `terraform/` または `server/` ディレクトリのファイルを変更
+2. mainブランチにプッシュ
+3. **Actions** タブで実行状況を確認
+
+```bash
+# 例：READMEを更新してテスト
+echo "# Test deployment" >> server/README.md
+git add server/README.md
+git commit -m "Test GitHub Actions deployment"
+git push origin main
+
+# GitHub Actionsの実行状況を確認
+# https://github.com/1900film/mcp-toolbox/actions
 ```
 
 ## 4. デプロイ実行
