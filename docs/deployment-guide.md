@@ -102,7 +102,7 @@ terraform apply
   - `mcp-toolbox-sa`: Cloud Run実行用
     - `roles/bigquery.user`: BigQueryジョブ実行権限
     - `roles/bigquery.dataViewer`: BigQueryデータ読み取り権限
-  - `github-actions-sa`: GitHub Actions用（CI/CD）
+  - `mcp-toolbox-deploy`: デプロイ用（GitHub Actions/CI/CD）
     - `roles/run.admin`: Cloud Runデプロイ権限
     - `roles/artifactregistry.writer`: イメージプッシュ権限
     - `roles/cloudbuild.builds.builder`: ビルド実行権限
@@ -125,13 +125,13 @@ terraform apply
 
 ```bash
 # サービスアカウントの作成
-gcloud iam service-accounts create github-actions-sa \
-  --display-name="GitHub Actions Service Account" \
+gcloud iam service-accounts create mcp-toolbox-deploy \
+  --display-name="MCP Toolbox Deploy Service Account" \
   --project=trans-grid-245207
 
 # 必要な権限を付与
 PROJECT_ID=trans-grid-245207
-SA_EMAIL=github-actions-sa@${PROJECT_ID}.iam.gserviceaccount.com
+SA_EMAIL=mcp-toolbox-deploy@${PROJECT_ID}.iam.gserviceaccount.com
 
 # Cloud Run管理者権限（デプロイ用）
 gcloud projects add-iam-policy-binding ${PROJECT_ID} \
@@ -163,7 +163,7 @@ gcloud projects add-iam-policy-binding ${PROJECT_ID} \
 # サービスアカウントに付与された権限を確認
 gcloud projects get-iam-policy trans-grid-245207 \
   --flatten="bindings[].members" \
-  --filter="bindings.members:serviceAccount:github-actions-sa@trans-grid-245207.iam.gserviceaccount.com" \
+  --filter="bindings.members:serviceAccount:mcp-toolbox-deploy@trans-grid-245207.iam.gserviceaccount.com" \
   --format="table(bindings.role)"
 ```
 
@@ -171,11 +171,11 @@ gcloud projects get-iam-policy trans-grid-245207 \
 
 ```bash
 # キーファイルを生成（ローカルで実行）
-gcloud iam service-accounts keys create github-actions-key.json \
-  --iam-account="github-actions-sa@trans-grid-245207.iam.gserviceaccount.com"
+gcloud iam service-accounts keys create deploy-key.json \
+  --iam-account="mcp-toolbox-deploy@trans-grid-245207.iam.gserviceaccount.com"
 
 # 生成されたキーの内容を表示（後でコピー用）
-cat github-actions-key.json
+cat deploy-key.json
 ```
 
 ### 3.3 GitHub Secretsの登録（GUI）
@@ -197,7 +197,7 @@ cat github-actions-key.json
 4. **Secret 2: GCP_SA_KEY**
    - 再度 **New repository secret** ボタンをクリック
    - **Name**: `GCP_SA_KEY`
-   - **Value**: 上記で生成した `github-actions-key.json` の内容全体をコピー＆ペースト
+   - **Value**: 上記で生成した `deploy-key.json` の内容全体をコピー＆ペースト
    - **Add secret** をクリック
 
 5. **登録確認**
@@ -211,10 +211,10 @@ GitHub Secretsへの登録が完了したら、ローカルのキーファイル
 
 ```bash
 # キーファイルを安全に削除
-rm github-actions-key.json
+rm deploy-key.json
 
 # 削除を確認
-ls github-actions-key.json 2>/dev/null || echo "✅ キーファイルが削除されました"
+ls deploy-key.json 2>/dev/null || echo "✅ キーファイルが削除されました"
 ```
 
 ### 3.5 動作確認

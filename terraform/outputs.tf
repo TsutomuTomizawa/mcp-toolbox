@@ -3,7 +3,7 @@ output "service_url" {
   value       = google_cloud_run_v2_service.main.uri
 }
 
-output "github_sa_email" {
-  description = "GitHub Actions service account"
+output "deploy_sa_email" {
+  description = "Deploy service account email"
   value       = google_service_account.github_actions.email
 }

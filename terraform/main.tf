@@ -107,11 +107,11 @@ resource "google_cloud_run_v2_service" "main" {
 }
 
 
-# GitHub Actions用サービスアカウント
+# デプロイ用サービスアカウント
 resource "google_service_account" "github_actions" {
   project      = local.project_id
-  account_id   = "github-actions-sa"
-  display_name = "GitHub Actions Service Account"
+  account_id   = "mcp-toolbox-deploy"
+  display_name = "MCP Toolbox Deploy Service Account"
 }
 
 # GitHub Actions用の権限
