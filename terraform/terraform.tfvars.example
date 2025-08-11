@@ -1,4 +1,4 @@
-project_id   = "your-dev-project-id"
-github_repo  = "your-username/mcp-toolbox-bigquery"
+project_id   = "trans-grid-245207"
+github_repo  = "1900film/mcp-toolbox"
 region       = "asia-northeast1"
 bq_location  = "asia-northeast1"
