@@ -12,11 +12,23 @@
 ## デプロイメントアーキテクチャ
 
 ```
-GitHub → Cloud Build → Artifact Registry → Cloud Run
-   ↓                                            ↓
-GitHub Actions                              BigQuery
-(CI/CD)                                    (データソース)
+GitHub Repository
+   ├─→ GitHub Actions (terraform.yml)
+   │      ↓
+   │   Terraform Apply → GCP Infrastructure
+   │                      (Cloud Run, IAM, etc.)
+   │
+   └─→ GitHub Actions (deploy.yml)
+          ↓
+       Cloud Build → Artifact Registry → Cloud Run
+                                            ↓
+                                         BigQuery
 ```
+
+### デプロイフロー
+
+1. **インフラ構築**: `terraform/`への変更 → GitHub Actions → Terraform Apply
+2. **アプリデプロイ**: `server/`への変更 → GitHub Actions → Cloud Build → Cloud Run
 
 ## 1. 初期セットアップ
 
@@ -43,28 +55,46 @@ gcloud services enable iamcredentials.googleapis.com
 
 ## 2. Terraformによるインフラストラクチャ構築
 
-### 2.1 設定ファイルの準備
+### 2.1 Terraform Stateバケットの作成（初回のみ）
 
 ```bash
-# terraform.tfvarsを作成（既に作成済み）
-cd terraform
-cp terraform.tfvars.example terraform.tfvars
+# Terraform state用のGCSバケットを作成
+gsutil mb -p trans-grid-245207 -l asia-northeast1 \
+  gs://terraform-state-trans-grid-245207/
 ```
 
-### 2.2 Terraform実行
+### 2.2 GitHub Actionsから自動実行
+
+Terraformは**GitHub Actions経由で自動実行**されます：
+
+1. `terraform/`ディレクトリのファイルを変更
+2. mainブランチにプッシュ
+3. 自動的にTerraform applyが実行される
 
 ```bash
-# 初期化
+# terraform/ディレクトリのファイルを変更後
+git add terraform/
+git commit -m "Update infrastructure"
+git push origin main
+
+# GitHub Actionsで自動的に以下が実行される：
+# - terraform init
+# - terraform plan
+# - terraform apply (mainブランチのみ)
+```
+
+### 2.3 手動実行（オプション）
+
+ローカルから手動で実行する場合：
+
+```bash
+cd terraform
 terraform init
-
-# 実行計画の確認
 terraform plan
-
-# インフラストラクチャの構築
 terraform apply
 ```
 
-### 2.3 作成されるリソース
+### 2.4 作成されるリソース
 
 - **Artifact Registry**: Dockerイメージ保存用
 - **Cloud Runサービス**: `mcp-toolbox`
