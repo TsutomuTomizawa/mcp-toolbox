@@ -106,21 +106,6 @@ resource "google_cloud_run_v2_service" "main" {
   ]
 }
 
-# クライアント用サービスアカウント
-resource "google_service_account" "client" {
-  project      = local.project_id
-  account_id   = "mcp-toolbox-client"
-  display_name = "MCP Toolbox Client"
-}
-
-# Cloud Run呼び出し権限
-resource "google_cloud_run_service_iam_member" "client_invoker" {
-  project  = google_cloud_run_v2_service.main.project
-  location = google_cloud_run_v2_service.main.location
-  service  = google_cloud_run_v2_service.main.name
-  role     = "roles/run.invoker"
-  member   = "serviceAccount:${google_service_account.client.email}"
-}
 
 # GitHub Actions用サービスアカウント
 resource "google_service_account" "github_actions" {

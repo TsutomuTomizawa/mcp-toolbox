@@ -28,7 +28,6 @@ make apply       # インフラを作成/更新
 
 # アプリケーション
 make deploy      # Cloud Runへデプロイ
-make client      # Claude Desktopを設定
 make logs        # Cloud Runのログを表示
 ```
 
@@ -49,10 +48,6 @@ Claude Desktop → mcp-remote → Cloud Run (MCP Toolbox) → BigQuery
    - Cloud Runサービス
    - サービスアカウント
    - Artifact Registry
-
-3. **クライアント** (`client/`)
-   - Claude Desktopセットアップスクリプト
-   - トークン管理
 
 ## 設定
 

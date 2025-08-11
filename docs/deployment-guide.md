@@ -70,7 +70,6 @@ terraform apply
 - **Cloud Runサービス**: `mcp-toolbox-bigquery`
 - **サービスアカウント**: 
   - `mcp-toolbox-sa`: Cloud Run用（BigQuery読み取り権限）
-  - `mcp-toolbox-client`: クライアント接続用
   - `github-actions-sa`: GitHub Actions用（CI/CD）
 
 ## 3. GitHub Actions設定
@@ -188,32 +187,30 @@ curl -X POST ${SERVICE_URL}/mcp \
   -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'
 ```
 
-## 6. クライアント設定（Claude Desktop）
+## 6. Cloud Run接続設定
 
-### 6.1 サービスアカウントキーの作成
+### 6.1 サービスURLの取得
 
 ```bash
-cd client
-./setup.sh
+# サービスURLを取得
+SERVICE_URL=$(gcloud run services describe mcp-toolbox-bigquery \
+  --region=asia-northeast1 \
+  --format='value(status.url)')
+
+echo "Service URL: $SERVICE_URL"
 ```
 
-### 6.2 Claude Desktopの設定
-
-setup.shスクリプトが自動的に以下を実行：
-1. サービスアカウントキーの生成
-2. アクセストークンの取得
-3. Claude Desktop設定ファイルの更新
-
-### 6.3 トークンの更新
-
-トークンは1時間で期限切れになるため、定期的な更新が必要：
+### 6.2 認証トークンの取得（テスト用）
 
 ```bash
-# 手動更新
-cd client && ./setup.sh
+# IDトークンを取得（テスト用）
+TOKEN=$(gcloud auth print-identity-token)
 
-# 自動更新（45分ごと）
-nohup ./client/refresh-token.sh &
+# APIテスト
+curl -X POST ${SERVICE_URL}/mcp \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'
 ```
 
 ## 7. トラブルシューティング

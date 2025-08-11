@@ -1,8 +1,7 @@
-.PHONY: help init plan apply destroy deploy client logs all local-build local-start local-stop local-test
+.PHONY: help init plan apply destroy deploy logs all local-build local-start local-stop local-test
 
 TERRAFORM_DIR = terraform
 SERVER_DIR = server
-CLIENT_DIR = client
 
 help:
 	@echo "MCP Toolbox BigQuery - Available Commands"
@@ -14,9 +13,8 @@ help:
 	@echo "  make apply    - Apply infrastructure"
 	@echo "  make destroy  - Destroy all resources"
 	@echo "  make deploy   - Deploy application"
-	@echo "  make client   - Setup client configuration"
 	@echo "  make logs     - View Cloud Run logs"
-	@echo "  make all      - Complete setup (init + apply + deploy + client)"
+	@echo "  make all      - Complete setup (init + apply + deploy)"
 	@echo ""
 	@echo "Local Testing Commands:"
 	@echo "  make local-test  - Run local Docker tests"
@@ -45,17 +43,13 @@ deploy:
 	@cd $(SERVER_DIR) && \
 	gcloud builds submit --config cloudbuild.yaml
 
-client:
-	@echo "Setting up client..."
-	@cd $(CLIENT_DIR) && ./setup.sh
-
 logs:
 	@echo "Fetching logs..."
 	@gcloud run logs read mcp-toolbox-bigquery \
 		--region=asia-northeast1 \
 		--limit=50
 
-all: init apply deploy client
+all: init apply deploy
 	@echo "✅ Complete setup finished!"
 
 # ローカルテストコマンド

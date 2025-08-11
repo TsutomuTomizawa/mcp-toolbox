@@ -303,7 +303,7 @@ Access to MCP Endpoint
   }
 }
 ```
-**対処**: トークンを再生成（`client/setup.sh`）
+**対処**: トークンを再生成
 
 ### クエリエラー
 ```json

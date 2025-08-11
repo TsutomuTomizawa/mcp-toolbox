@@ -38,11 +38,6 @@ make apply
 make deploy
 ```
 
-4. **Claude Desktop設定**
-```bash
-make client
-```
-
 ## ローカルテスト
 
 ```bash
@@ -78,7 +73,6 @@ make help     # ヘルプ表示
 make init     # Terraform初期化
 make apply    # インフラ構築
 make deploy   # アプリデプロイ
-make client   # クライアント設定
 make logs     # ログ表示
 ```
 
@@ -89,10 +83,6 @@ make logs     # ログ表示
 make logs  # Cloud Runのログを確認
 ```
 
-### トークン期限切れ
-```bash
-cd client && ./setup.sh  # トークン更新
-```
 
 ## ライセンス
 
