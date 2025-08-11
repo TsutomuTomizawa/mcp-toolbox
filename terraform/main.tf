@@ -10,7 +10,11 @@ locals {
     "artifactregistry.googleapis.com",
     "bigquery.googleapis.com",
     "iamcredentials.googleapis.com",
-    "secretmanager.googleapis.com"
+    "secretmanager.googleapis.com",
+    "apikeys.googleapis.com",
+    "apigateway.googleapis.com",
+    "servicemanagement.googleapis.com",
+    "servicecontrol.googleapis.com"
   ]
 }
 

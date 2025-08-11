@@ -12,7 +12,8 @@ terraform.tfvars
 # Service account keys
 service-account-key.json
 keys/
-*.json
+*-key.json
+*-sa-key.json
 
 # Docker
 docker-compose.override.yml
@@ -34,3 +35,9 @@ __pycache__/
 
 # Node
 node_modules/
+
+# Claude Desktop config (contains API keys)
+claude-desktop-config.json
+
+# API Gateway
+api-gateway/openapi-spec-local.yaml

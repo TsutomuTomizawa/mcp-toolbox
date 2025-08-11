@@ -1,106 +1,228 @@
-# MCP Toolbox BigQuery
+# MCP Toolbox for BigQuery
 
-LLM（Claude Desktop等）からBigQueryに自然言語でアクセスできるMCPサーバー実装。
+Google Cloud上でBigQueryアクセスを提供するMCP (Model Context Protocol) サーバーの実装。  
+Claude DesktopからAPI Gateway経由でセキュアにBigQueryを操作できます。
 
-**デプロイ済みサービス**: https://mcp-toolbox-2fbutm4xoa-an.a.run.app
+## 🏗️ アーキテクチャ
 
-## 特徴
+```
+Claude Desktop → API Gateway → Cloud Run (MCP Toolbox) → BigQuery
+                    ↓
+                APIキー認証
+```
 
-- ✅ **MCP Toolbox**: Google公式のエンタープライズグレード実装
-- ✅ **Cloud Run**: サーバーレスで自動スケーリング
-- ✅ **Terraform**: Infrastructure as Codeで管理
-- ✅ **GitHub Actions**: CI/CDパイプライン
+### コンポーネント
 
-## クイックスタート
+- **API Gateway**: APIキー認証とリクエストルーティング
+- **Cloud Run**: MCP Toolboxサーバー（Google公式コンテナ）
+- **BigQuery**: データウェアハウス
+- **Terraform**: インフラストラクチャ管理
+
+## 🚀 機能
+
+- ✅ BigQueryへの読み取り専用アクセス
+- ✅ SQLクエリ実行、テーブル/データセット一覧取得
+- ✅ API Gateway経由のセキュアな認証
+- ✅ サーバーレスで自動スケーリング
+- ✅ Claude Desktopとの完全統合
+
+## 📁 プロジェクト構造
+
+```
+.
+├── api-gateway/      # API Gateway設定
+│   └── openapi-spec.yaml
+├── docs/            # ドキュメント
+│   ├── claude-desktop-setup.md
+│   ├── deployment-guide.md
+│   └── system-architecture.md
+├── server/          # MCP Toolboxサーバー
+│   ├── Dockerfile
+│   └── tools.yaml
+├── terraform/       # インフラストラクチャ定義
+│   ├── main.tf
+│   └── api-gateway.tf
+└── .github/         # CI/CDワークフロー
+    └── workflows/
+```
+
+## 🔧 セットアップ
 
 ### 前提条件
 
 - Google Cloud アカウント
-- gcloud CLI
-- Terraform
-- Docker
-- Claude Desktop
+- gcloud CLI インストール済み
+- Terraform インストール済み
+- npm インストール済み（Claude Desktop用）
 
-### セットアップ
+### 1. 初期設定
 
-1. **環境変数の設定**
 ```bash
+# リポジトリをクローン
+git clone https://github.com/1900film/mcp-toolbox.git
+cd mcp-toolbox
+
+# Google Cloud認証
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+
+# Terraform変数を設定
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
-# ファイルを編集して実際の値を設定
+# terraform.tfvarsを編集
 ```
 
-2. **インフラストラクチャの構築**
+### 2. インフラストラクチャのデプロイ
+
 ```bash
+# Terraform初期化
 make init
+
+# デプロイ計画を確認
+make plan
+
+# インフラをデプロイ
 make apply
 ```
 
-3. **アプリケーションのデプロイ**
+### 3. アプリケーションのデプロイ
+
 ```bash
+# Cloud Runへデプロイ
 make deploy
 ```
 
-## ローカルテスト
+### 4. Claude Desktop設定
+
+詳細は [Claude Desktop設定ガイド](docs/claude-desktop-setup.md) を参照。
+
+簡単な設定例：
+
+```json
+{
+  "mcpServers": {
+    "mcp-toolbox-bigquery": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://YOUR-API-GATEWAY-URL/mcp"
+      ],
+      "env": {
+        "MCP_HEADERS": "{\"X-API-Key\": \"YOUR-API-KEY\"}"
+      }
+    }
+  }
+}
+```
+
+## 📝 利用可能なMCPツール
+
+| ツール名 | 説明 |
+|---------|------|
+| `query` | SQLクエリを実行 |
+| `list-datasets` | データセット一覧を取得 |
+| `list-tables` | テーブル一覧を取得 |
+| `table-info` | テーブルメタデータを取得 |
+
+## 🛠️ 開発・運用コマンド
 
 ```bash
-# ビルドと起動
-make local-build
-make local-start
+# ヘルプを表示
+make help
 
-# テスト実行
-make local-test
+# インフラ管理
+make init          # Terraformを初期化
+make plan          # 実行計画を表示
+make apply         # インフラをデプロイ
+make destroy       # インフラを削除
 
-# 停止
-make local-stop
+# アプリケーション管理
+make deploy        # Cloud Runへデプロイ
+make logs          # ログを表示
+
+# ローカル開発
+make local-build   # Dockerイメージをビルド
+make local-start   # ローカルで起動
+make local-test    # テストを実行
+make local-stop    # 停止
 ```
 
-## 使い方
+## 🔐 セキュリティ
 
-### Claude Codeでの利用
+### 認証フロー
 
-リポジトリ内でMCPサーバーを使用：
+1. Claude DesktopがAPIキーを含むリクエストを送信
+2. API GatewayがAPIキーを検証
+3. 認証成功時のみCloud Runへプロキシ
+4. Cloud RunがBigQueryにアクセス（サービスアカウント経由）
+
+### セキュリティ機能
+
+- ✅ APIキー認証（API Gateway）
+- ✅ Cloud Runは内部通信のみ
+- ✅ BigQuery読み取り専用権限
+- ✅ 最小権限の原則
+
+## ⚙️ 環境変数・設定
+
+### 必須の環境変数
+
+| 変数名 | 説明 | デフォルト |
+|--------|------|-----------|
+| `PROJECT_ID` | GCPプロジェクトID | - |
+| `REGION` | デプロイリージョン | asia-northeast1 |
+| `API_KEY` | APIキー（Cloud Run） | - |
+
+### GitHub Secrets（CI/CD用）
+
+- `GCP_PROJECT_ID`: プロジェクトID
+- `GCP_SA_KEY`: サービスアカウントキー（JSON）
+- `API_KEY`: Cloud Run環境変数用APIキー
+
+## 📚 ドキュメント
+
+- [Claude Desktop設定ガイド](docs/claude-desktop-setup.md) - Claude Desktopの詳細設定
+- [デプロイメントガイド](docs/deployment-guide.md) - 本番環境へのデプロイ手順
+- [システムアーキテクチャ](docs/system-architecture.md) - 技術的な詳細
+
+## 🚨 トラブルシューティング
+
+### API Gatewayエラー
 
 ```bash
-# 初回セットアップ（認証トークン生成）
-./.claude/setup-mcp.sh
+# APIキーが無効な場合
+{"code":401,"message":"UNAUTHENTICATED"}
 
-# Claude Codeを再起動すると、MCPツールが利用可能になります
+# 解決法：APIキーを確認、必要に応じて再生成
+gcloud services api-keys list
 ```
 
-**注意**: トークンは1時間で期限切れになるため、定期的に`setup-mcp.sh`を実行してください。
-
-### 利用可能なツール
-
-- `execute_sql`: SQLクエリ実行
-- `list_dataset_ids`: データセット一覧
-- `list_table_ids`: テーブル一覧  
-- `get_table_info`: テーブル情報取得
-- `get_dataset_info`: データセット情報取得
-
-## アーキテクチャ
-
-```
-Claude Desktop → mcp-remote → Cloud Run → BigQuery
-```
-
-## コマンド一覧
+### Cloud Runエラー
 
 ```bash
-make help     # ヘルプ表示
-make init     # Terraform初期化
-make apply    # インフラ構築
-make deploy   # アプリデプロイ
-make logs     # ログ表示
+# ログを確認
+make logs
+
+# サービスステータスを確認
+gcloud run services describe mcp-toolbox --region=asia-northeast1
 ```
 
-## トラブルシューティング
+## 🤝 コントリビューション
 
-### 接続エラー
-```bash
-make logs  # Cloud Runのログを確認
-```
+1. このリポジトリをフォーク
+2. 機能ブランチを作成 (`git checkout -b feature/amazing-feature`)
+3. 変更をコミット (`git commit -m 'Add amazing feature'`)
+4. ブランチをプッシュ (`git push origin feature/amazing-feature`)
+5. Pull Requestを作成
 
+## 📄 ライセンス
 
-## ライセンス
+MIT License - 詳細は [LICENSE](LICENSE) ファイルを参照
 
-MIT# Test deployment trigger - Tue Aug 12 01:18:29 JST 2025
+## 🔗 関連リンク
+
+- [MCP (Model Context Protocol)](https://modelcontextprotocol.io)
+- [Google Cloud Run](https://cloud.google.com/run)
+- [Google API Gateway](https://cloud.google.com/api-gateway)
+- [Google BigQuery](https://cloud.google.com/bigquery)
+- [Claude Desktop](https://claude.ai/desktop)

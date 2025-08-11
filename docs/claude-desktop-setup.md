@@ -1,77 +1,61 @@
 # Claude Desktop MCP設定ガイド
 
-このガイドでは、Claude DesktopからGoogle Cloud Run上のMCP Toolboxサーバーに接続する方法を説明します。
+このガイドでは、Claude DesktopからAPI Gateway経由でBigQueryにアクセスするための設定方法を詳しく説明します。
 
 ## 📋 前提条件
 
 - Claude Desktopがインストール済み
-- npmがインストール済み
-- Google Cloud Runサービスがデプロイ済み
-- サービスアカウントキーファイルを取得済み
+- npmがインストール済み（Node.js v16以上）
+- 管理者からAPIキーとGateway URLを取得済み
 
 ## 🔧 セットアップ手順
 
-### 1. mcp-remoteのインストール
+### 1. 必要な情報の確認
+
+管理者から以下の情報を取得してください：
+
+- **API Gateway URL**: `https://mcp-toolbox-gateway-XXXXX.an.gateway.dev`
+- **APIキー**: `AIzaSy...` で始まる文字列
+
+### 2. mcp-remoteのインストール
 
 ```bash
-npm install -g @modelcontextprotocol/mcp-remote
+# グローバルインストール（推奨）
+npm install -g mcp-remote
+
+# または npx で自動インストール（設定ファイルで -y オプション使用）
 ```
 
-### 2. サービスアカウントキーの取得と配置
+### 3. Claude Desktop設定ファイルの場所
 
-#### 管理者がキーを生成する場合：
-```bash
-# サービスアカウントキーを生成（管理者のみ実行）
-gcloud iam service-accounts keys create mcp-toolbox-key.json \
-  --iam-account=mcp-toolbox-sa@trans-grid-245207.iam.gserviceaccount.com
-```
-
-#### ユーザーがキーを配置する手順：
-
-1. **キーファイルを受け取る**
-   - 管理者から `mcp-toolbox-key.json` または類似のファイルを受け取ります
-
-2. **保存用ディレクトリを作成してキーを配置**
-   ```bash
-   # ディレクトリ作成
-   mkdir -p ~/.mcp
-   
-   # キーファイルをコピー（ダウンロードフォルダから配置する例）
-   cp ~/Downloads/mcp-toolbox-key.json ~/.mcp/bigquery-key.json
-   
-   # 権限を設定（重要！）
-   chmod 600 ~/.mcp/bigquery-key.json
-   ```
-
-3. **配置先の確認**
-   ```bash
-   # ファイルが正しく配置されたか確認
-   ls -la ~/.mcp/bigquery-key.json
-   ```
-
-実際の保存場所：
-- **macOS/Linux**: `/Users/あなたのユーザー名/.mcp/bigquery-key.json`
-- **Windows**: `C:\Users\あなたのユーザー名\.mcp\bigquery-key.json`
-
-⚠️ **重要**: このファイルは機密情報です。安全に管理してください。
-
-### 3. Claude Desktop設定ファイルの編集
-
-Claude Desktopの設定ファイルを開きます：
+設定ファイルの場所：
 
 **macOS:**
 ```bash
+# ファイルパス
 ~/Library/Application Support/Claude/claude_desktop_config.json
+
+# ディレクトリを開く
+open ~/Library/Application\ Support/Claude/
 ```
 
 **Windows:**
-```
+```powershell
+# ファイルパス
 %APPDATA%\Claude\claude_desktop_config.json
+
+# ディレクトリを開く
+explorer %APPDATA%\Claude
 ```
 
-### 4. MCP設定の追加
+**Linux:**
+```bash
+~/.config/Claude/claude_desktop_config.json
+```
 
-以下の設定を`claude_desktop_config.json`に追加します：
+### 4. 設定ファイルの編集
+
+設定ファイルが存在しない場合は新規作成し、以下の内容を記載します：
 
 ```json
 {
@@ -79,111 +63,123 @@ Claude Desktopの設定ファイルを開きます：
     "mcp-toolbox-bigquery": {
       "command": "npx",
       "args": [
-        "@modelcontextprotocol/mcp-remote",
-        "https://mcp-toolbox-2fbutm4xoa-an.a.run.app"
+        "-y",
+        "mcp-remote",
+        "https://mcp-toolbox-gateway-6dtrsv6l.an.gateway.dev/mcp"
       ],
       "env": {
-        "GOOGLE_APPLICATION_CREDENTIALS": "/Users/あなたのユーザー名/.mcp/bigquery-key.json"
+        "MCP_HEADERS": "{\"X-API-Key\": \"YOUR-API-KEY\"}"
       }
     }
   }
 }
 ```
 
-⚠️ **重要な注意事項**: 
-- **macOS/Linux**: `/Users/あなたのユーザー名` を実際のユーザー名に置き換えてください
-  - 例: `/Users/tsutomutomizawa/.mcp/bigquery-key.json`
-- **Windows**: `C:\Users\あなたのユーザー名\.mcp\bigquery-key.json` を使用
-  - 例: `C:\Users\tsutomutomizawa\.mcp\bigquery-key.json`
-- **フルパスで記載する必要があります**（`~`は使用できません）
+⚠️ **注意**: 
+- APIキーは管理者から提供されます
+- API Gateway経由でアクセスします
+- 必ずAPIキーを環境変数に設定してください
 
 ### 5. Claude Desktopの再起動
 
-設定を反映させるため、Claude Desktopを再起動します。
+設定を反映させるため、Claude Desktopを完全に終了してから再起動します：
+
+**macOS:**
+1. メニューバーのClaudeアイコンから「Quit Claude」を選択
+2. アプリケーションフォルダからClaude Desktopを起動
+
+**Windows:**
+1. システムトレイのClaudeアイコンを右クリック→「終了」
+2. スタートメニューからClaude Desktopを起動
 
 ## ✅ 動作確認
 
-### 設定ファイルの実際の例
+### 6. 接続状態の確認
 
-例えば、ユーザー名が `tsutomutomizawa` の場合：
+Claude Desktopを起動後、以下の方法でMCPサーバーの接続を確認します：
 
-**macOS用の完全な設定例：**
+1. **新しいチャットを開始**
+2. **MCPツールアイコンを確認** - チャット入力欄の近くにツールアイコンが表示されているか
+3. **「/」を入力** - 利用可能なコマンドが表示されるか確認
+
+### 実際の設定例
+
+本番環境での設定例：
 ```json
 {
   "mcpServers": {
     "mcp-toolbox-bigquery": {
       "command": "npx",
       "args": [
-        "@modelcontextprotocol/mcp-remote",
-        "https://mcp-toolbox-2fbutm4xoa-an.a.run.app"
+        "-y",
+        "mcp-remote",
+        "https://mcp-toolbox-gateway-6dtrsv6l.an.gateway.dev/mcp"
       ],
       "env": {
-        "GOOGLE_APPLICATION_CREDENTIALS": "/Users/tsutomutomizawa/.mcp/bigquery-key.json"
+        "MCP_HEADERS": "{\"X-API-Key\": \"あなたのAPIキー\"}"
       }
     }
   }
 }
 ```
 
-### 接続テスト
 
-Claude Desktopで以下のようなメッセージを送信して動作を確認します：
+### 7. テストクエリの実行
+
+以下のようなメッセージをClaudeに送信して動作を確認します：
 
 ```
-BigQueryのmeta_1900film2データセットにあるテーブルを一覧表示してください
+BigQueryのデータセット一覧を表示してください
 ```
 
-正常に動作すれば、以下のようなツールが利用可能になります：
-- `query` - SQLクエリの実行
-- `list-datasets` - データセット一覧
-- `list-tables` - テーブル一覧
-- `table-info` - テーブル情報取得
+または
+
+```
+SELECT * FROM `your-dataset.your-table` LIMIT 10 を実行してください
+```
+
+## 📦 利用可能なMCPツール
+
+| ツール名 | 説明 | 使用例 |
+|---------|------|--------|
+| `query` | SQLクエリを実行 | BigQueryでSQLを実行してください |
+| `list-datasets` | データセット一覧を取得 | データセットをリストしてください |
+| `list-tables` | テーブル一覧を取得 | dataset_nameのテーブルを表示して |
+| `table-info` | テーブル情報を取得 | table_nameのスキーマを見せて |
 
 ## 🔐 セキュリティ
 
-### サービスアカウントキーの管理
+### アクセス制御
 
-1. **アクセス制限**: キーファイルは必要最小限のユーザーのみがアクセスできるようにする
-2. **権限設定**: ファイルのパーミッションを適切に設定
-   ```bash
-   chmod 600 ~/.mcp/bigquery-key.json
-   ```
-3. **定期ローテーション**: 3ヶ月ごとにキーを更新することを推奨
-4. **Git管理除外**: 絶対にGitリポジトリにコミットしない
+- **API Gateway**によるAPIキー認証
+- Cloud Runは内部通信のみ（直接アクセス不可）
+- BigQueryへの読み取り専用アクセス
 
-### 権限の範囲
+### APIキーのセキュリティ
 
-このサービスアカウントには以下の権限があります：
-- BigQueryデータの読み取り（`roles/bigquery.dataViewer`）
-- BigQueryジョブの実行（`roles/bigquery.user`）
-- Cloud Runサービスの呼び出し（`roles/run.invoker`）
+⚠️ **重要な注意事項**：
+- APIキーをGitHubや公開リポジトリにコミットしない
+- パスワードマネージャーなどで安全に管理
+- 不審なアクセスを発見した場合は管理者に報告
 
 ## 🚨 トラブルシューティング
 
 ### 接続エラーが発生する場合
 
-1. **キーファイルのパスを確認**
+1. **mcp-remoteがインストールされているか確認**
    ```bash
-   # ファイルが存在するか確認
-   ls -la ~/.mcp/bigquery-key.json
-   
-   # 実際のフルパスを表示
-   echo /Users/$(whoami)/.mcp/bigquery-key.json
+   npm list -g mcp-remote
    ```
 
-2. **Claude Desktop設定のパスが正しいか確認**
-   - 設定ファイルのパスがフルパスで記載されているか
-   - ユーザー名が正しく置き換えられているか
-
-3. **ネットワーク接続の確認**
+2. **ネットワーク接続の確認**
    ```bash
    curl https://mcp-toolbox-2fbutm4xoa-an.a.run.app/health
    ```
 
-### 認証エラーが発生する場合
+### MCPサーバーが起動しない場合
 
-1. キーファイルの有効性を確認
-2. サービスアカウントの権限を確認
+1. Claude Desktopを完全に終了して再起動
+2. 設定ファイルのJSON構文を確認
 3. Cloud Runサービスのステータスを確認
 
 ### ログの確認

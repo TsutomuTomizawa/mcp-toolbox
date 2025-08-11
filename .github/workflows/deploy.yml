@@ -42,4 +42,5 @@ jobs:
       run: |
         gcloud run services update ${{ env.SERVICE }} \
           --image="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/mcp-toolbox/${{ env.SERVICE }}:${{ github.sha }}" \
-          --region=${{ env.REGION }}
+          --region=${{ env.REGION }} \
+          --set-env-vars="API_KEY=${{ secrets.API_KEY }}"
