@@ -8,7 +8,7 @@
         "https://mcp-toolbox-2fbutm4xoa-an.a.run.app/mcp"
       ],
       "env": {
-        "MCP_REMOTE_HEADERS": "{\"Authorization\":\"Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImJhNjNiNDM2ODM2YTkzOWI3OTViNDEyMmQzZjRkMGQyMjVkMWM3MDAiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIzMjU1NTk0MDU1OS5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsImF1ZCI6IjMyNTU1OTQwNTU5LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTEwNTY3MDA0MTE1MjMyMTMwNDY0IiwiaGQiOiJoZWxsb3dpc2VlZ2cuY29tIiwiZW1haWwiOiJ0b21pemF3YUBoZWxsb3dpc2VlZ2cuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJMYVNpY2lpVmxTMnBSeUlfZUxUMGdRIiwiaWF0IjoxNzU0OTMyNDcyLCJleHAiOjE3NTQ5MzYwNzJ9.R8bFDVyruZgkLwEgPhoVtfRgpixhT13KN3TC8Ff0EfTJ8zLoypw10pg_omHnygvbdsIyRbiP1y3sTzTN_0_H1ANMKRTpEk79wzMt-vSL8E3ye1jJ6aB-ES3XyGwFI_XC5jXXfoXY9z9TPwgNMNCkP8ZXzw3IK45BaVxKGH4F3Fuf-GBDXGheU4XyiQuLKFuPiHV_nUPGh-bdvikhD7kud-guelpdv1xKU3kTJmuvhAprz9HRl42og1kpLOn99UcodLk526YvldcA_5wSwrXm9jowjSU9_-4zTZjxsOpEU6a0GIp857D0slL-MIXiwoJ7lB0ekSyEFcd_6Htg4FET6A\"}"
+        "GOOGLE_APPLICATION_CREDENTIALS": "/Users/tsutomutomizawa/.mcp/bigquery-key.json"
       }
     }
   }
