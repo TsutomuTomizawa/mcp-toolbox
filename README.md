@@ -86,4 +86,4 @@ make logs  # Cloud Runのログを確認
 
 ## ライセンス
 
-MIT
+MIT# Test deployment trigger - Tue Aug 12 01:18:29 JST 2025
