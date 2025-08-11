@@ -60,13 +60,21 @@ all: init apply deploy client
 
 # ローカルテストコマンド
 local-build:
-	@./scripts/local-test.sh build
+	@echo "Building Docker image..."
+	@docker-compose build
 
 local-start:
-	@./scripts/local-test.sh start
+	@echo "Starting container..."
+	@docker-compose up -d
+	@echo "Service URL: http://localhost:8080"
 
 local-stop:
-	@./scripts/local-test.sh stop
+	@echo "Stopping container..."
+	@docker-compose down
 
 local-test:
-	@./scripts/local-test.sh test
+	@echo "Testing API endpoints..."
+	@curl -s http://localhost:8080/health || echo "Health check failed"
+	@curl -s -X POST http://localhost:8080/mcp \
+		-H "Content-Type: application/json" \
+		-d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}' | jq '.result.tools[].name' 2>/dev/null || echo "MCP test failed"

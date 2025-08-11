@@ -9,10 +9,8 @@
 .terraform/
 terraform.tfvars
 
-# Keys
-keys/
-*.json
-!terraform.tfvars.example
+# Service account keys
+service-account-key.json
 
 # Docker
 docker-compose.override.yml
