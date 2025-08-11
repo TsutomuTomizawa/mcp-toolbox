@@ -119,7 +119,7 @@ resource "google_project_iam_member" "github_actions_permissions" {
   for_each = toset([
     "roles/run.admin",
     "roles/artifactregistry.writer",
-    "roles/cloudbuild.builds.builder"
+    "roles/cloudbuild.builds.editor"
   ])
   
   project = local.project_id
