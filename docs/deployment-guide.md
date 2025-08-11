@@ -99,21 +99,72 @@ terraform apply
 - **Artifact Registry**: Dockerイメージ保存用
 - **Cloud Runサービス**: `mcp-toolbox`
 - **サービスアカウント**: 
-  - `mcp-toolbox-sa`: Cloud Run用（BigQuery読み取り権限）
+  - `mcp-toolbox-sa`: Cloud Run実行用
+    - `roles/bigquery.user`: BigQueryジョブ実行権限
+    - `roles/bigquery.dataViewer`: BigQueryデータ読み取り権限
   - `github-actions-sa`: GitHub Actions用（CI/CD）
+    - `roles/run.admin`: Cloud Runデプロイ権限
+    - `roles/artifactregistry.writer`: イメージプッシュ権限
+    - `roles/cloudbuild.builds.builder`: ビルド実行権限
 
 ## 3. GitHub Actions設定
 
-### 3.1 サービスアカウントの確認
+### 3.1 サービスアカウントの作成と権限設定
 
-まず、GitHub Actions用のサービスアカウントが存在することを確認：
+#### 方法1: Terraformで自動作成（推奨）
+Terraformを実行すると自動的にサービスアカウントと権限が設定されます：
 
 ```bash
-# サービスアカウントの存在確認
-gcloud iam service-accounts list --filter="email:github-actions-sa@"
+cd terraform
+terraform init
+terraform apply
+```
 
-# 存在しない場合は、Terraformを実行してサービスアカウントを作成
-# （GitHub Actionsで自動実行、または手動で terraform apply）
+#### 方法2: 手動作成
+サービスアカウントを手動で作成する場合：
+
+```bash
+# サービスアカウントの作成
+gcloud iam service-accounts create github-actions-sa \
+  --display-name="GitHub Actions Service Account" \
+  --project=trans-grid-245207
+
+# 必要な権限を付与
+PROJECT_ID=trans-grid-245207
+SA_EMAIL=github-actions-sa@${PROJECT_ID}.iam.gserviceaccount.com
+
+# Cloud Run管理者権限（デプロイ用）
+gcloud projects add-iam-policy-binding ${PROJECT_ID} \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/run.admin"
+
+# Artifact Registry書き込み権限（Dockerイメージプッシュ用）
+gcloud projects add-iam-policy-binding ${PROJECT_ID} \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/artifactregistry.writer"
+
+# Cloud Buildビルダー権限（ビルド実行用）
+gcloud projects add-iam-policy-binding ${PROJECT_ID} \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/cloudbuild.builds.builder"
+```
+
+#### 必要な権限の詳細
+
+| ロール | 用途 |
+|--------|------|
+| `roles/run.admin` | Cloud Runサービスのデプロイと管理 |
+| `roles/artifactregistry.writer` | DockerイメージをArtifact Registryにプッシュ |
+| `roles/cloudbuild.builds.builder` | Cloud Buildでビルドを実行 |
+
+#### 権限の確認
+
+```bash
+# サービスアカウントに付与された権限を確認
+gcloud projects get-iam-policy trans-grid-245207 \
+  --flatten="bindings[].members" \
+  --filter="bindings.members:serviceAccount:github-actions-sa@trans-grid-245207.iam.gserviceaccount.com" \
+  --format="table(bindings.role)"
 ```
 
 ### 3.2 サービスアカウントキーの生成
