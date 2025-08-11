@@ -2,8 +2,8 @@
 sources:
   bigquery:
     kind: bigquery
-    project: ${GCP_PROJECT_ID}
-    location: ${BQ_LOCATION}
+    project: trans-grid-245207
+    location: asia-northeast1
 
 tools:
   # 汎用SQLクエリ実行
