@@ -6,16 +6,13 @@
 
 - Claude Desktopがインストール済み
 - npmがインストール済み（Node.js v16以上）
-- 管理者からAPIキーとGateway URLを取得済み
 
 ## 🔧 セットアップ手順
 
 ### 1. 必要な情報の確認
 
-管理者から以下の情報を取得してください：
-
-- **API Gateway URL**: `https://mcp-toolbox-gateway-XXXXX.an.gateway.dev`
-- **APIキー**: `AIzaSy...` で始まる文字列
+このMCPサーバーはパブリックアクセス可能なCloud Run上で動作しています。
+特別な認証情報は必要ありません。
 
 ### 2. mcp-remoteのインストール
 
@@ -65,20 +62,16 @@ explorer %APPDATA%\Claude
       "args": [
         "-y",
         "mcp-remote",
-        "https://mcp-toolbox-gateway-6dtrsv6l.an.gateway.dev/mcp"
-      ],
-      "env": {
-        "MCP_HEADERS": "{\"X-API-Key\": \"YOUR-API-KEY\"}"
-      }
+        "https://mcp-toolbox-2fbutm4xoa-an.a.run.app/mcp"
+      ]
     }
   }
 }
 ```
 
 ⚠️ **注意**: 
-- APIキーは管理者から提供されます
-- API Gateway経由でアクセスします
-- 必ずAPIキーを環境変数に設定してください
+- 認証情報は不要です
+- Cloud Runサービスに直接アクセスします
 
 ### 5. Claude Desktopの再起動
 
@@ -102,26 +95,6 @@ Claude Desktopを起動後、以下の方法でMCPサーバーの接続を確認
 2. **MCPツールアイコンを確認** - チャット入力欄の近くにツールアイコンが表示されているか
 3. **「/」を入力** - 利用可能なコマンドが表示されるか確認
 
-### 実際の設定例
-
-本番環境での設定例：
-```json
-{
-  "mcpServers": {
-    "mcp-toolbox-bigquery": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://mcp-toolbox-gateway-6dtrsv6l.an.gateway.dev/mcp"
-      ],
-      "env": {
-        "MCP_HEADERS": "{\"X-API-Key\": \"あなたのAPIキー\"}"
-      }
-    }
-  }
-}
-```
 
 
 ### 7. テストクエリの実行
@@ -151,16 +124,9 @@ SELECT * FROM `your-dataset.your-table` LIMIT 10 を実行してください
 
 ### アクセス制御
 
-- **API Gateway**によるAPIキー認証
-- Cloud Runは内部通信のみ（直接アクセス不可）
+- Cloud Runサービスはパブリックアクセス可能
 - BigQueryへの読み取り専用アクセス
-
-### APIキーのセキュリティ
-
-⚠️ **重要な注意事項**：
-- APIキーをGitHubや公開リポジトリにコミットしない
-- パスワードマネージャーなどで安全に管理
-- 不審なアクセスを発見した場合は管理者に報告
+- サービスアカウントで権限を制限
 
 ## 🚨 トラブルシューティング
 
@@ -174,6 +140,7 @@ SELECT * FROM `your-dataset.your-table` LIMIT 10 を実行してください
 2. **ネットワーク接続の確認**
    ```bash
    curl https://mcp-toolbox-2fbutm4xoa-an.a.run.app/health
+   # "OK" が返ってくれば成功
    ```
 
 ### MCPサーバーが起動しない場合

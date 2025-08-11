@@ -6,14 +6,11 @@ Claude DesktopからAPI Gateway経由でセキュアにBigQueryを操作でき�
 ## 🏗️ アーキテクチャ
 
 ```
-Claude Desktop → API Gateway → Cloud Run (MCP Toolbox) → BigQuery
-                    ↓
-                APIキー認証
+Claude Desktop → Cloud Run (MCP Toolbox) → BigQuery
 ```
 
 ### コンポーネント
 
-- **API Gateway**: APIキー認証とリクエストルーティング
 - **Cloud Run**: MCP Toolboxサーバー（Google公式コンテナ）
 - **BigQuery**: データウェアハウス
 - **Terraform**: インフラストラクチャ管理
@@ -22,7 +19,6 @@ Claude Desktop → API Gateway → Cloud Run (MCP Toolbox) → BigQuery
 
 - ✅ BigQueryへの読み取り専用アクセス
 - ✅ SQLクエリ実行、テーブル/データセット一覧取得
-- ✅ API Gateway経由のセキュアな認証
 - ✅ サーバーレスで自動スケーリング
 - ✅ Claude Desktopとの完全統合
 
@@ -105,11 +101,8 @@ make deploy
       "args": [
         "-y",
         "mcp-remote",
-        "https://YOUR-API-GATEWAY-URL/mcp"
-      ],
-      "env": {
-        "MCP_HEADERS": "{\"X-API-Key\": \"YOUR-API-KEY\"}"
-      }
+        "https://mcp-toolbox-2fbutm4xoa-an.a.run.app/mcp"
+      ]
     }
   }
 }
@@ -149,19 +142,17 @@ make local-stop    # 停止
 
 ## 🔐 セキュリティ
 
-### 認証フロー
+### アクセス制御
 
-1. Claude DesktopがAPIキーを含むリクエストを送信
-2. API GatewayがAPIキーを検証
-3. 認証成功時のみCloud Runへプロキシ
-4. Cloud RunがBigQueryにアクセス（サービスアカウント経由）
+1. Cloud Runサービスはパブリックアクセス可能
+2. サービスアカウント経由でBigQueryにアクセス
+3. BigQueryは読み取り専用権限のみ
 
 ### セキュリティ機能
 
-- ✅ APIキー認証（API Gateway）
-- ✅ Cloud Runは内部通信のみ
 - ✅ BigQuery読み取り専用権限
 - ✅ 最小権限の原則
+- ✅ サービスアカウントによるアクセス制御
 
 ## ⚙️ 環境変数・設定
 
@@ -171,13 +162,11 @@ make local-stop    # 停止
 |--------|------|-----------|
 | `PROJECT_ID` | GCPプロジェクトID | - |
 | `REGION` | デプロイリージョン | asia-northeast1 |
-| `API_KEY` | APIキー（Cloud Run） | - |
 
 ### GitHub Secrets（CI/CD用）
 
 - `GCP_PROJECT_ID`: プロジェクトID
 - `GCP_SA_KEY`: サービスアカウントキー（JSON）
-- `API_KEY`: Cloud Run環境変数用APIキー
 
 ## 📚 ドキュメント
 
@@ -186,16 +175,6 @@ make local-stop    # 停止
 - [システムアーキテクチャ](docs/system-architecture.md) - 技術的な詳細
 
 ## 🚨 トラブルシューティング
-
-### API Gatewayエラー
-
-```bash
-# APIキーが無効な場合
-{"code":401,"message":"UNAUTHENTICATED"}
-
-# 解決法：APIキーを確認、必要に応じて再生成
-gcloud services api-keys list
-```
 
 ### Cloud Runエラー
 
@@ -223,6 +202,5 @@ MIT License - 詳細は [LICENSE](LICENSE) ファイルを参照
 
 - [MCP (Model Context Protocol)](https://modelcontextprotocol.io)
 - [Google Cloud Run](https://cloud.google.com/run)
-- [Google API Gateway](https://cloud.google.com/api-gateway)
 - [Google BigQuery](https://cloud.google.com/bigquery)
 - [Claude Desktop](https://claude.ai/desktop)

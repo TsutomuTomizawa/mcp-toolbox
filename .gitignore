@@ -36,8 +36,5 @@ __pycache__/
 # Node
 node_modules/
 
-# Claude Desktop config (contains API keys)
+# Claude Desktop config
 claude-desktop-config.json
-
-# API Gateway
-api-gateway/openapi-spec-local.yaml
