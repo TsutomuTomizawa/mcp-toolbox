@@ -13,4 +13,4 @@ EXPOSE 8080
 
 # MCP Toolbox起動（カスタム設定を使用）
 ENTRYPOINT ["/toolbox"]
-CMD ["--config", "/app/tools.yaml", "--port", "8080", "--address", "0.0.0.0", "--log-level", "INFO"]
+CMD ["--tools-file", "/app/tools.yaml", "--port", "8080", "--address", "0.0.0.0", "--log-level", "INFO"]
