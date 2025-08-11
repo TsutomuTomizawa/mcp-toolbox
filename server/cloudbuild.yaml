@@ -35,7 +35,7 @@ steps:
 
 substitutions:
   _REGION: asia-northeast1
-  _SERVICE_NAME: mcp-toolbox-bigquery
+  _SERVICE_NAME: mcp-toolbox
 
 options:
   logging: CLOUD_LOGGING_ONLY

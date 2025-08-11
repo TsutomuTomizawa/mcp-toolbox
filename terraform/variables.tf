@@ -18,7 +18,7 @@ variable "bq_location" {
 variable "service_name" {
   description = "Cloud Run service name"
   type        = string
-  default     = "mcp-toolbox-bigquery"
+  default     = "mcp-toolbox"
 }
 
 variable "github_repo" {

@@ -67,7 +67,7 @@ terraform apply
 ### 2.3 作成されるリソース
 
 - **Artifact Registry**: Dockerイメージ保存用
-- **Cloud Runサービス**: `mcp-toolbox-bigquery`
+- **Cloud Runサービス**: `mcp-toolbox`
 - **サービスアカウント**: 
   - `mcp-toolbox-sa`: Cloud Run用（BigQuery読み取り権限）
   - `github-actions-sa`: GitHub Actions用（CI/CD）
@@ -151,11 +151,11 @@ make deploy
 
 ```bash
 # サービスの状態確認
-gcloud run services describe mcp-toolbox-bigquery \
+gcloud run services describe mcp-toolbox \
   --region=asia-northeast1
 
 # URLの取得
-gcloud run services describe mcp-toolbox-bigquery \
+gcloud run services describe mcp-toolbox \
   --region=asia-northeast1 \
   --format='value(status.url)'
 ```
@@ -164,7 +164,7 @@ gcloud run services describe mcp-toolbox-bigquery \
 
 ```bash
 # Cloud Runのログ
-gcloud run logs read mcp-toolbox-bigquery \
+gcloud run logs read mcp-toolbox \
   --region=asia-northeast1 \
   --limit=50
 
@@ -176,7 +176,7 @@ make logs
 
 ```bash
 # サービスURLを取得して確認
-SERVICE_URL=$(gcloud run services describe mcp-toolbox-bigquery \
+SERVICE_URL=$(gcloud run services describe mcp-toolbox \
   --region=asia-northeast1 \
   --format='value(status.url)')
 
@@ -193,7 +193,7 @@ curl -X POST ${SERVICE_URL}/mcp \
 
 ```bash
 # サービスURLを取得
-SERVICE_URL=$(gcloud run services describe mcp-toolbox-bigquery \
+SERVICE_URL=$(gcloud run services describe mcp-toolbox \
   --region=asia-northeast1 \
   --format='value(status.url)')
 
@@ -219,11 +219,11 @@ curl -X POST ${SERVICE_URL}/mcp \
 
 ```bash
 # デプロイの詳細を確認
-gcloud run revisions list --service=mcp-toolbox-bigquery \
+gcloud run revisions list --service=mcp-toolbox \
   --region=asia-northeast1
 
 # 最新リビジョンのログ
-gcloud run logs read mcp-toolbox-bigquery \
+gcloud run logs read mcp-toolbox \
   --region=asia-northeast1 \
   --limit=100
 ```

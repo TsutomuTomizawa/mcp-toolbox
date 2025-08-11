@@ -11,7 +11,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: asia-northeast1
-  SERVICE: mcp-toolbox-bigquery
+  SERVICE: mcp-toolbox
 
 jobs:
   deploy:

@@ -45,7 +45,7 @@ deploy:
 
 logs:
 	@echo "Fetching logs..."
-	@gcloud run logs read mcp-toolbox-bigquery \
+	@gcloud run logs read mcp-toolbox \
 		--region=asia-northeast1 \
 		--limit=50
 
