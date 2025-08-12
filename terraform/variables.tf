@@ -29,7 +29,7 @@ variable "github_repo" {
 variable "min_instances" {
   description = "Minimum Cloud Run instances"
   type        = number
-  default     = 0
+  default     = 1
 }
 
 variable "max_instances" {
