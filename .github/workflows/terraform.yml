@@ -43,6 +43,8 @@ jobs:
       run: |
         terraform plan \
           -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+          -var="github_repo=${{ github.repository }}" \
+          -lock-timeout=60s \
           -out=tfplan
     
     - name: Terraform Apply
