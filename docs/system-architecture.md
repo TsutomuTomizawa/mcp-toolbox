@@ -46,14 +46,12 @@ MCP Toolboxは、LLM（Claude Desktop等）がBigQueryと自然言語でやり�
 ```json
 {
   "mcpServers": {
-    "bigquery": {
+    "mcp-toolbox-bigquery": {
       "command": "npx",
       "args": [
         "-y",
         "mcp-remote",
-        "https://mcp-toolbox-bigquery-xxx.run.app/mcp",
-        "--header",
-        "Authorization: Bearer TOKEN"
+        "https://mcp-toolbox-2fbutm4xoa-an.a.run.app/mcp"
       ]
     }
   }
@@ -64,25 +62,23 @@ MCP Toolboxは、LLM（Claude Desktop等）がBigQueryと自然言語でやり�
 
 **役割**: ローカル↔リモート間の通信橋渡し
 - Claude DesktopからのMCPリクエストを受信
-- HTTPSでCloud Runサービスに転送
-- 認証トークンを付与
+- HTTPSでCloud Runサービスに転送（パブリックアクセス）
 
 **処理フロー**:
 1. Claude DesktopからJSON-RPCリクエスト受信
-2. Authorization headerを追加
-3. Cloud RunのMCPエンドポイントに転送
-4. レスポンスをClaude Desktopに返却
+2. Cloud RunのMCPエンドポイントに転送
+3. レスポンスをClaude Desktopに返却
 
 ### 3. Cloud Run（MCP Toolbox Server）
 
 **役割**: MCPプロトコルの実装とBigQuery接続
 - MCPツールの実装
 - BigQuery APIとの通信
-- 認証・認可の処理
+- サービスアカウントによるBigQueryアクセス
 
 **エンドポイント**:
-- `/mcp` - MCPプロトコルエンドポイント（POST）
-- `/health` - ヘルスチェック（GET）※現在は404
+- `/mcp` - MCPプロトコルエンドポイント（POST、パブリックアクセス）
+- `/health` - ヘルスチェック（GET）
 
 **環境変数**:
 ```bash
@@ -224,35 +220,26 @@ sequenceDiagram
     Claude-->>User: 利用可能なデータの説明
 ```
 
-## 認証フロー
+## 認証とアクセス制御
 
-### 1. サービスアカウント認証（Cloud Run）
+### サービスアカウント構成
 
 ```
-Cloud Run Service
+Cloud Run Service (パブリックアクセス)
     ↓
-Service Account: mcp-toolbox-sa
+Service Account: mcp-toolbox-sa@trans-grid-245207
     ↓
 IAM Roles:
   - roles/bigquery.user
   - roles/bigquery.dataViewer
     ↓
-BigQuery Access
+BigQuery (読み取り専用アクセス)
 ```
 
-### 2. クライアント認証（Claude Desktop）
-
-```
-Client Service Account
-    ↓
-Generate Access Token (1時間有効)
-    ↓
-Bearer Token in Header
-    ↓
-Cloud Run Invoker Permission
-    ↓
-Access to MCP Endpoint
-```
+**ポイント**:
+- Cloud Run自体はパブリックアクセス（認証不要）
+- BigQueryへのアクセスはサービスアカウント経由で制限
+- BigQueryは読み取り専用権限のみ付与
 
 ## 利用可能なMCPツール
 
@@ -295,17 +282,6 @@ Access to MCP Endpoint
 
 ## エラーハンドリング
 
-### 認証エラー
-```json
-{
-  "error": {
-    "code": 401,
-    "message": "Unauthorized: Invalid or expired token"
-  }
-}
-```
-**対処**: トークンを再生成
-
 ### クエリエラー
 ```json
 {
@@ -331,7 +307,7 @@ Access to MCP Endpoint
 ## パフォーマンス最適化
 
 ### 1. Cloud Runスケーリング
-- **コールドスタート対策**: 最小インスタンス数を1に設定可能
+- **コールドスタート対策**: min_instances=1に設定済み（常時起動）
 - **自動スケーリング**: 負荷に応じて最大10インスタンスまで拡張
 - **同時実行数**: 1インスタンスあたり最大1000リクエスト
 
@@ -349,13 +325,12 @@ Access to MCP Endpoint
 
 ### 1. 最小権限の原則
 - BigQuery: 読み取り専用権限
-- Cloud Run: 認証必須
+- Cloud Run: パブリックアクセスだが、BigQueryアクセスは制限
 - サービスアカウント: 必要最小限のロール
 
 ### 2. ネットワークセキュリティ
 - HTTPS通信のみ
-- Cloud Run認証による保護
-- トークンの定期更新（1時間）
+- Cloud Run自体はパブリックだが、BigQueryへのアクセスはサービスアカウント経由
 
 ### 3. データアクセス制御
 - データセットレベルのアクセス制御
