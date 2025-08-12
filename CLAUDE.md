@@ -43,11 +43,13 @@ Claude Desktop → mcp-remote → Cloud Run (MCP Toolbox) → BigQuery
    - コンテナ: `us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:0.11.0`
    - 設定: `tools.yaml`
    - ポート: 8080
+   - アクセス: パブリック（認証不要）
 
 2. **インフラストラクチャ** (`terraform/`)
-   - Cloud Runサービス
-   - サービスアカウント
+   - Cloud Runサービス（min_instances=1でコールドスタート回避）
+   - サービスアカウント（BigQuery読み取り専用）
    - Artifact Registry
+   - GitHub Actions CI/CD
 
 ## 設定
 

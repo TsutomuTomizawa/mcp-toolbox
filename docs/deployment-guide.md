@@ -20,9 +20,9 @@ GitHub Repository
    │
    └─→ GitHub Actions (deploy.yml)
           ↓
-       Cloud Build → Artifact Registry → Cloud Run
+       Docker Build → Artifact Registry → Cloud Run (Public)
                                             ↓
-                                         BigQuery
+                                         BigQuery (Read-only)
 ```
 
 ### デプロイフロー

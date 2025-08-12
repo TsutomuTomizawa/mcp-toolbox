@@ -1,12 +1,12 @@
 # MCP Toolbox for BigQuery
 
 Google Cloud上でBigQueryアクセスを提供するMCP (Model Context Protocol) サーバーの実装。  
-Claude DesktopからAPI Gateway経由でセキュアにBigQueryを操作できます。
+Claude DesktopからCloud Run経由で直接BigQueryを操作できます。
 
 ## 🏗️ アーキテクチャ
 
 ```
-Claude Desktop → Cloud Run (MCP Toolbox) → BigQuery
+Claude Desktop → mcp-remote → Cloud Run (MCP Toolbox) → BigQuery
 ```
 
 ### コンポーネント
@@ -26,8 +26,6 @@ Claude Desktop → Cloud Run (MCP Toolbox) → BigQuery
 
 ```
 .
-├── api-gateway/      # API Gateway設定
-│   └── openapi-spec.yaml
 ├── docs/            # ドキュメント
 │   ├── claude-desktop-setup.md
 │   ├── deployment-guide.md
@@ -37,9 +35,13 @@ Claude Desktop → Cloud Run (MCP Toolbox) → BigQuery
 │   └── tools.yaml
 ├── terraform/       # インフラストラクチャ定義
 │   ├── main.tf
-│   └── api-gateway.tf
-└── .github/         # CI/CDワークフロー
-    └── workflows/
+│   ├── backend.tf
+│   └── variables.tf
+├── .github/         # CI/CDワークフロー
+│   └── workflows/
+│       ├── deploy.yml
+│       └── terraform.yml
+└── CLAUDE.md        # Claude Code用プロジェクト説明
 ```
 
 ## 🔧 セットアップ
@@ -144,15 +146,16 @@ make local-stop    # 停止
 
 ### アクセス制御
 
-1. Cloud Runサービスはパブリックアクセス可能
-2. サービスアカウント経由でBigQueryにアクセス
-3. BigQueryは読み取り専用権限のみ
+- **Cloud Run**: パブリックアクセス可能（認証不要）
+- **BigQuery**: サービスアカウント経由で読み取り専用アクセス
+- **最小権限**: 必要最小限の権限のみ付与
 
 ### セキュリティ機能
 
 - ✅ BigQuery読み取り専用権限
 - ✅ 最小権限の原則
 - ✅ サービスアカウントによるアクセス制御
+- ✅ min_instances=1でコールドスタート回避（パフォーマンス最適化）
 
 ## ⚙️ 環境変数・設定
 

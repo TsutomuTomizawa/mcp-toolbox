@@ -1,6 +1,6 @@
 # Claude Desktop MCP設定ガイド
 
-このガイドでは、Claude DesktopからAPI Gateway経由でBigQueryにアクセスするための設定方法を詳しく説明します。
+このガイドでは、Claude DesktopからCloud Run経由でBigQueryにアクセスするための設定方法を詳しく説明します。
 
 ## 📋 前提条件
 
