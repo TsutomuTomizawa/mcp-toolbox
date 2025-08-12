@@ -56,7 +56,8 @@ Claude Desktop → mcp-remote → Cloud Run (MCP Toolbox) → BigQuery
 ### 1. 初期設定
 
 ```bash
-# リポジトリをクローン
+# リポジトリをクローン（プライベートリポジトリ）
+# ※アクセス権限が必要です
 git clone https://github.com/1900film/mcp-toolbox.git
 cd mcp-toolbox
 
@@ -189,17 +190,13 @@ make logs
 gcloud run services describe mcp-toolbox --region=asia-northeast1
 ```
 
-## 🤝 コントリビューション
+## 🔒 プライベートリポジトリ
 
-1. このリポジトリをフォーク
-2. 機能ブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'Add amazing feature'`)
-4. ブランチをプッシュ (`git push origin feature/amazing-feature`)
-5. Pull Requestを作成
+このリポジトリはプライベート設定のため、許可されたユーザーのみアクセス可能です。
 
 ## 📄 ライセンス
 
-MIT License - 詳細は [LICENSE](LICENSE) ファイルを参照
+プライベートリポジトリ - 内部使用のみ
 
 ## 🔗 関連リンク
 
