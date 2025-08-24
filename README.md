@@ -14,6 +14,7 @@ Claude Desktop → mcp-remote → Cloud Run (MCP Toolbox) → BigQuery
 - **Cloud Run**: MCP Toolboxサーバー（Google公式コンテナ）
 - **BigQuery**: データウェアハウス
 - **Terraform**: インフラストラクチャ管理
+- **GitHub Actions**: CI/CDパイプライン
 
 ## 🚀 機能
 
@@ -21,6 +22,7 @@ Claude Desktop → mcp-remote → Cloud Run (MCP Toolbox) → BigQuery
 - ✅ SQLクエリ実行、テーブル/データセット一覧取得
 - ✅ サーバーレスで自動スケーリング
 - ✅ Claude Desktopとの完全統合
+- ✅ GitHub Actions による自動デプロイ
 
 ## 📁 プロジェクト構造
 
@@ -32,15 +34,16 @@ Claude Desktop → mcp-remote → Cloud Run (MCP Toolbox) → BigQuery
 │   └── system-architecture.md
 ├── server/          # MCP Toolboxサーバー
 │   ├── Dockerfile
-│   └── tools.yaml
+│   ├── tools.yaml
+│   └── cloudbuild.yaml
 ├── terraform/       # インフラストラクチャ定義
 │   ├── main.tf
 │   ├── backend.tf
 │   └── variables.tf
 ├── .github/         # CI/CDワークフロー
 │   └── workflows/
-│       ├── deploy.yml
-│       └── terraform.yml
+│       ├── deploy.yml    # アプリケーションデプロイ
+│       └── terraform.yml # インフラ管理
 └── CLAUDE.md        # Claude Code用プロジェクト説明
 ```
 
@@ -50,51 +53,77 @@ Claude Desktop → mcp-remote → Cloud Run (MCP Toolbox) → BigQuery
 
 - Google Cloud アカウント
 - gcloud CLI インストール済み
-- Terraform インストール済み
+- Terraform インストール済み（オプション）
 - npm インストール済み（Claude Desktop用）
+- GitHub アカウント
 
-### 1. 初期設定
+### 1. リポジトリのフォーク/クローン
 
 ```bash
-# リポジトリをクローン（プライベートリポジトリ）
-# ※アクセス権限が必要です
-git clone https://github.com/1900film/mcp-toolbox.git
+# このリポジトリをフォークまたはクローン
+git clone https://github.com/TsutomuTomizawa/mcp-toolbox.git
 cd mcp-toolbox
+```
 
+### 2. Google Cloud設定
+
+```bash
 # Google Cloud認証
 gcloud auth login
 gcloud config set project YOUR_PROJECT_ID
 
-# Terraform変数を設定
-cp terraform/terraform.tfvars.example terraform/terraform.tfvars
-# terraform.tfvarsを編集
+# 必要なAPIを有効化
+gcloud services enable \
+  run.googleapis.com \
+  cloudbuild.googleapis.com \
+  artifactregistry.googleapis.com \
+  bigquery.googleapis.com \
+  iam.googleapis.com
 ```
 
-### 2. インフラストラクチャのデプロイ
+### 3. GitHub Secrets設定
+
+リポジトリの Settings > Secrets and variables > Actions で以下を設定：
+
+1. `GCP_PROJECT_ID`: あなたのGCPプロジェクトID
+2. `GCP_SA_KEY`: デプロイ用サービスアカウントのキー（JSON）
+
+詳細は [デプロイメントガイド](docs/deployment-guide.md) を参照。
+
+### 4. 設定ファイルの更新
 
 ```bash
-# Terraform初期化
-make init
+# プロジェクトIDを更新
+sed -i '' 's/expertduck/YOUR_PROJECT_ID/g' server/tools.yaml
+sed -i '' 's/expertduck/YOUR_PROJECT_ID/g' terraform/terraform.tfvars.example
 
-# デプロイ計画を確認
-make plan
-
-# インフラをデプロイ
-make apply
+# リージョンを必要に応じて更新（デフォルト: asia-southeast2）
+sed -i '' 's/asia-southeast2/YOUR_REGION/g' .github/workflows/deploy.yml
 ```
 
-### 3. アプリケーションのデプロイ
+### 5. デプロイ
+
+#### 自動デプロイ（GitHub Actions）
 
 ```bash
-# Cloud Runへデプロイ
-make deploy
+git add .
+git commit -m "Configure for my project"
+git push origin main
 ```
 
-### 4. Claude Desktop設定
+#### 手動デプロイ
 
-詳細は [Claude Desktop設定ガイド](docs/claude-desktop-setup.md) を参照。
+```bash
+# Cloud Runへ直接デプロイ
+gcloud run deploy mcp-toolbox \
+  --image=us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:0.11.0 \
+  --region=YOUR_REGION \
+  --platform=managed \
+  --allow-unauthenticated \
+  --set-env-vars="GCP_PROJECT_ID=YOUR_PROJECT_ID,BQ_LOCATION=YOUR_REGION"
+```
 
-簡単な設定例：
+### 6. Claude Desktop設定
 
 ```json
 {
@@ -104,12 +133,14 @@ make deploy
       "args": [
         "-y",
         "mcp-remote",
-        "https://mcp-toolbox-2fbutm4xoa-an.a.run.app/mcp"
+        "YOUR_CLOUD_RUN_SERVICE_URL/mcp"
       ]
     }
   }
 }
 ```
+
+詳細は [Claude Desktop設定ガイド](docs/claude-desktop-setup.md) を参照。
 
 ## 📝 利用可能なMCPツール
 
@@ -122,25 +153,46 @@ make deploy
 
 ## 🛠️ 開発・運用コマンド
 
+### ローカル開発
+
 ```bash
-# ヘルプを表示
-make help
+# Dockerイメージをビルド
+make local-build
 
-# インフラ管理
-make init          # Terraformを初期化
-make plan          # 実行計画を表示
-make apply         # インフラをデプロイ
-make destroy       # インフラを削除
+# ローカルで起動
+make local-start
 
-# アプリケーション管理
-make deploy        # Cloud Runへデプロイ
-make logs          # ログを表示
+# テストを実行
+make local-test
 
-# ローカル開発
-make local-build   # Dockerイメージをビルド
-make local-start   # ローカルで起動
-make local-test    # テストを実行
-make local-stop    # 停止
+# 停止
+make local-stop
+```
+
+### インフラ管理（Terraform）
+
+```bash
+# 初期化
+make init
+
+# 実行計画を表示
+make plan
+
+# インフラをデプロイ
+make apply
+
+# インフラを削除
+make destroy
+```
+
+### デプロイメント
+
+```bash
+# Cloud Runへデプロイ
+make deploy
+
+# ログを表示
+make logs
 ```
 
 ## 🔐 セキュリティ
@@ -156,7 +208,7 @@ make local-stop    # 停止
 - ✅ BigQuery読み取り専用権限
 - ✅ 最小権限の原則
 - ✅ サービスアカウントによるアクセス制御
-- ✅ min_instances=1でコールドスタート回避（パフォーマンス最適化）
+- ✅ 環境変数による設定管理
 
 ## ⚙️ 環境変数・設定
 
@@ -164,8 +216,8 @@ make local-stop    # 停止
 
 | 変数名 | 説明 | デフォルト |
 |--------|------|-----------|
-| `PROJECT_ID` | GCPプロジェクトID | - |
-| `REGION` | デプロイリージョン | asia-northeast1 |
+| `GCP_PROJECT_ID` | GCPプロジェクトID | - |
+| `BQ_LOCATION` | BigQueryのロケーション | asia-southeast2 |
 
 ### GitHub Secrets（CI/CD用）
 
@@ -187,16 +239,20 @@ make local-stop    # 停止
 make logs
 
 # サービスステータスを確認
-gcloud run services describe mcp-toolbox --region=asia-northeast1
+gcloud run services describe mcp-toolbox --region=YOUR_REGION
 ```
 
-## 🔒 プライベートリポジトリ
+### Terraform エラー
 
-このリポジトリはプライベート設定のため、許可されたユーザーのみアクセス可能です。
+既存のリソースとの競合が発生した場合は、`terraform/main.tf` で既存リソースを data source として参照するよう修正してください。
+
+## 🤝 コントリビューション
+
+プルリクエストを歓迎します！大きな変更の場合は、まずissueを開いて変更内容を議論してください。
 
 ## 📄 ライセンス
 
-プライベートリポジトリ - 内部使用のみ
+MIT License - 詳細は [LICENSE](LICENSE) を参照
 
 ## 🔗 関連リンク
 
@@ -204,3 +260,8 @@ gcloud run services describe mcp-toolbox --region=asia-northeast1
 - [Google Cloud Run](https://cloud.google.com/run)
 - [Google BigQuery](https://cloud.google.com/bigquery)
 - [Claude Desktop](https://claude.ai/desktop)
+
+## 🙏 謝辞
+
+- Google Cloud Platform チーム（MCP Toolboxコンテナの提供）
+- Anthropic チーム（MCP プロトコルの開発）
