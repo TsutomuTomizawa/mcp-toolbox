@@ -3,7 +3,7 @@ sources:
   bigquery:
     kind: bigquery
     project: expertduck
-    location: asia-southeast2
+    location: asia-southeast1
 
 tools:
   # 汎用SQLクエリ実行
