@@ -24,28 +24,17 @@ resource "google_project_service" "apis" {
   disable_on_destroy = false
 }
 
-# Artifact Registry
-resource "google_artifact_registry_repository" "main" {
+# 既存のArtifact Registryを参照
+data "google_artifact_registry_repository" "main" {
   project       = local.project_id
   location      = local.region
   repository_id = "mcp-toolbox"
-  description   = "MCP Toolbox Docker images"
-  format        = "DOCKER"
-  
-  cleanup_policies {
-    id     = "keep-recent"
-    action = "KEEP"
-    most_recent_versions {
-      keep_count = 10
-    }
-  }
 }
 
-# サービスアカウント（MCP Toolbox用）
-resource "google_service_account" "mcp_toolbox" {
-  project      = local.project_id
-  account_id   = "mcp-toolbox-sa"
-  display_name = "MCP Toolbox Service Account"
+# 既存のサービスアカウント（MCP Toolbox用）を参照
+data "google_service_account" "mcp_toolbox" {
+  project    = local.project_id
+  account_id = "mcp-toolbox-sa@${local.project_id}.iam.gserviceaccount.com"
 }
 
 # BigQuery権限
@@ -57,64 +46,23 @@ resource "google_project_iam_member" "bigquery_permissions" {
   
   project = local.project_id
   role    = each.value
-  member  = "serviceAccount:${google_service_account.mcp_toolbox.email}"
+  member  = "serviceAccount:${data.google_service_account.mcp_toolbox.email}"
 }
 
-# Cloud Runサービス
-resource "google_cloud_run_v2_service" "main" {
+# 既存のCloud Runサービスを参照
+data "google_cloud_run_v2_service" "main" {
   project  = local.project_id
   name     = var.service_name
   location = local.region
-  
-  template {
-    service_account = google_service_account.mcp_toolbox.email
-    
-    scaling {
-      min_instance_count = var.min_instances
-      max_instance_count = var.max_instances
-    }
-    
-    containers {
-      image = "${local.region}-docker.pkg.dev/${local.project_id}/mcp-toolbox/${var.service_name}:latest"
-      
-      resources {
-        limits = {
-          cpu    = var.cpu
-          memory = var.memory
-        }
-      }
-      
-      env {
-        name  = "GCP_PROJECT_ID"
-        value = local.project_id
-      }
-      
-      env {
-        name  = "BQ_LOCATION"
-        value = var.bq_location
-      }
-      
-      ports {
-        container_port = 8080
-      }
-    }
-  }
-  
-  depends_on = [
-    google_artifact_registry_repository.main,
-    google_project_service.apis
-  ]
 }
 
-
-# デプロイ用サービスアカウント
-resource "google_service_account" "github_actions" {
-  project      = local.project_id
-  account_id   = "mcp-toolbox-deploy"
-  display_name = "MCP Toolbox Deploy Service Account"
+# 既存のデプロイ用サービスアカウントを参照
+data "google_service_account" "github_actions" {
+  project    = local.project_id
+  account_id = "mcp-toolbox-deploy@${local.project_id}.iam.gserviceaccount.com"
 }
 
-# GitHub Actions用の権限
+# GitHub Actions用の権限（既に付与済みの場合はスキップ）
 resource "google_project_iam_member" "github_actions_permissions" {
   for_each = toset([
     "roles/run.admin",
@@ -125,5 +73,5 @@ resource "google_project_iam_member" "github_actions_permissions" {
   
   project = local.project_id
   role    = each.value
-  member  = "serviceAccount:${google_service_account.github_actions.email}"
+  member  = "serviceAccount:${data.google_service_account.github_actions.email}"
 }
