@@ -1,6 +1,6 @@
 output "service_url" {
   description = "Cloud Run service URL"
-  value       = data.google_cloud_run_v2_service.main.uri
+  value       = google_cloud_run_v2_service.main.uri
 }
 
 output "deploy_sa_email" {
