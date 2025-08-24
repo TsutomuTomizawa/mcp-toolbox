@@ -6,13 +6,13 @@ variable "project_id" {
 variable "region" {
   description = "GCP Region"
   type        = string
-  default     = "asia-northeast1"
+  default     = "asia-southeast2"
 }
 
 variable "bq_location" {
   description = "BigQuery location"
   type        = string
-  default     = "asia-northeast1"
+  default     = "asia-southeast2"
 }
 
 variable "service_name" {

@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = "terraform-state-trans-grid-245207"
+    bucket = "terraform-state-expertduck"
     prefix = "mcp-toolbox"
   }
 }

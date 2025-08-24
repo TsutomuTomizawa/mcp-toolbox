@@ -33,7 +33,7 @@ steps:
       - '--region=${_REGION}'
 
 substitutions:
-  _REGION: asia-northeast1
+  _REGION: asia-southeast2
   _SERVICE_NAME: mcp-toolbox
 
 options:

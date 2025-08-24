@@ -2,8 +2,8 @@
 sources:
   bigquery:
     kind: bigquery
-    project: trans-grid-245207
-    location: asia-northeast1
+    project: expertduck
+    location: asia-southeast2
 
 tools:
   # 汎用SQLクエリ実行

@@ -46,7 +46,7 @@ deploy:
 logs:
 	@echo "Fetching logs..."
 	@gcloud run logs read mcp-toolbox \
-		--region=asia-northeast1 \
+		--region=asia-southeast2 \
 		--limit=50
 
 all: init apply deploy
