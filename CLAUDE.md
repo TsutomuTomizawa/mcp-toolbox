@@ -53,8 +53,8 @@ Claude Desktop → mcp-remote → Cloud Run (MCP Toolbox) → BigQuery
 
 ## 設定
 
-- **プロジェクトID**: trans-grid-245207
-- **リージョン**: asia-northeast1
+- **プロジェクトID**: expertduck
+- **リージョン**: asia-southeast2 (ジャカルタ)
 - **認証**: Application Default Credentials
 
 ## 利用可能なMCPツール

@@ -31,10 +31,12 @@ data "google_artifact_registry_repository" "main" {
   repository_id = "mcp-toolbox"
 }
 
-# 既存のサービスアカウント（MCP Toolbox用）を参照
-data "google_service_account" "mcp_toolbox" {
-  project    = local.project_id
-  account_id = "mcp-toolbox-sa@${local.project_id}.iam.gserviceaccount.com"
+# MCP Toolbox用サービスアカウントの作成
+resource "google_service_account" "mcp_toolbox" {
+  project      = local.project_id
+  account_id   = "mcp-toolbox-sa"
+  display_name = "MCP Toolbox Service Account"
+  description  = "Service account for MCP Toolbox Cloud Run service"
 }
 
 # BigQuery権限
@@ -46,14 +48,66 @@ resource "google_project_iam_member" "bigquery_permissions" {
   
   project = local.project_id
   role    = each.value
-  member  = "serviceAccount:${data.google_service_account.mcp_toolbox.email}"
+  member  = "serviceAccount:${google_service_account.mcp_toolbox.email}"
 }
 
-# 既存のCloud Runサービスを参照
-data "google_cloud_run_v2_service" "main" {
+# Cloud Runサービスの作成
+resource "google_cloud_run_v2_service" "main" {
   project  = local.project_id
   name     = var.service_name
   location = local.region
+  
+  template {
+    service_account = google_service_account.mcp_toolbox.email
+    
+    scaling {
+      min_instance_count = 1
+      max_instance_count = 10
+    }
+    
+    containers {
+      image = "${local.region}-docker.pkg.dev/${local.project_id}/mcp-toolbox/${var.service_name}:latest"
+      
+      ports {
+        container_port = 8080
+      }
+      
+      env {
+        name  = "GCP_PROJECT_ID"
+        value = local.project_id
+      }
+      
+      env {
+        name  = "BQ_LOCATION"
+        value = "asia-southeast2"
+      }
+      
+      env {
+        name  = "LOG_LEVEL"
+        value = "INFO"
+      }
+      
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "1Gi"
+        }
+      }
+    }
+  }
+  
+  depends_on = [
+    google_project_service.apis
+  ]
+}
+
+# Cloud Runサービスへのパブリックアクセスを許可
+resource "google_cloud_run_service_iam_member" "public_access" {
+  project  = local.project_id
+  location = local.region
+  service  = google_cloud_run_v2_service.main.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
 }
 
 # 既存のデプロイ用サービスアカウントを参照
